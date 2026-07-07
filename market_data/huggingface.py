@@ -246,6 +246,27 @@ task_categories:
 pretty_name: Indian Market Data (NSE/BSE)
 size_categories:
 - 1M<n<10M
+configs:
+- config_name: stocks
+  data_files:
+  - split: train
+    path: stocks/*.parquet
+- config_name: indices
+  data_files:
+  - split: train
+    path: indices/*.parquet
+- config_name: etfs
+  data_files:
+  - split: train
+    path: etfs/*.parquet
+- config_name: commodities
+  data_files:
+  - split: train
+    path: commodities/*.parquet
+- config_name: forex
+  data_files:
+  - split: train
+    path: forex/*.parquet
 ---
 
 # Indian Market Data (NSE/BSE)

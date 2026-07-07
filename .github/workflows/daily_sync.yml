@@ -48,9 +48,17 @@ jobs:
       - name: Install dependencies
         run: uv pip install -e ".[dev]" --system
 
+      - name: Restore Data Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/
+          key: market-data-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            market-data-${{ runner.os }}-
+
       - name: Run sync pipeline
         env:
-          HF_REPO_ID: ${{ vars.HF_REPO_ID || format('{0}/indian-market-data', github.actor) }}
+          HF_REPO_ID: ${{ vars.HF_REPO_ID || format('{0}/indian-market-historical-ohlcv', github.actor) }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_PRIVATE: ${{ vars.HF_PRIVATE || 'false' }}
           DATA_DIR: ./data
@@ -80,6 +88,13 @@ jobs:
 
           echo "Running: $CMD"
           $CMD
+
+      - name: Save Data Cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: market-data-${{ runner.os }}-${{ github.run_id }}
 
       - name: Upload sync logs
         if: always()
