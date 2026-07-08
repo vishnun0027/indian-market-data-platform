@@ -542,8 +542,23 @@ def sync(
         console.print("\n[bold]Step 1/5:[/bold] Pulling existing data from HuggingFace...")
         from market_data.huggingface import HuggingFaceSync
 
+        # Map --type filter to HF subdirectory names so we only pull
+        # the relevant files instead of the full ~280 MB dataset.
+        _ASSET_TYPE_TO_SUBDIR = {
+            "EQUITY": "stocks",
+            "INDEX": "indices",
+            "ETF": "etfs",
+            "COMMODITY": "commodities",
+            "FOREX": "forex",
+        }
+        pull_subdirs = None
+        if asset_type:
+            subdir = _ASSET_TYPE_TO_SUBDIR.get(asset_type.upper())
+            if subdir:
+                pull_subdirs = [subdir]
+
         hf = HuggingFaceSync(repo_id=hf_repo, token=hf_token, private=settings.hf_private)
-        hf.pull_dataset(local_dir=settings.data_dir)
+        hf.pull_dataset(local_dir=settings.data_dir, subdirs=pull_subdirs)
         console.print("[green]  ✓[/green] Pull complete")
     else:
         console.print("\n[bold]Step 1/5:[/bold] [dim]Skipped (--skip-push)[/dim]")

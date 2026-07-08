@@ -77,7 +77,11 @@ class HuggingFaceSync:
     # ------------------------------------------------------------------
     # Pull
     # ------------------------------------------------------------------
-    def pull_dataset(self, local_dir: Path) -> Path:
+    def pull_dataset(
+        self,
+        local_dir: Path,
+        subdirs: list[str] | None = None,
+    ) -> Path:
         """Download the dataset from HuggingFace to a local directory.
 
         Only downloads Parquet files and metadata. If the repo doesn't
@@ -85,6 +89,10 @@ class HuggingFaceSync:
 
         Args:
             local_dir: Local directory to download into.
+            subdirs: Optional list of asset subdirectories to pull
+                (e.g. ["forex", "indices"]). When None, pulls all data.
+                Use this to limit the download to only the asset types
+                you need, avoiding a full ~280 MB pull for partial syncs.
 
         Returns:
             Path to the local directory with downloaded data.
@@ -103,9 +111,14 @@ class HuggingFaceSync:
 
         logger.info("Pulling dataset from %s → %s", self._repo_id, local_dir)
 
-        # Download only relevant files (Parquet + metadata)
-        allow_patterns = [
-            "*.parquet",
+        # Build allow_patterns scoped to requested subdirs (or all if not specified)
+        if subdirs:
+            parquet_patterns = [f"{s}/*.parquet" for s in subdirs]
+            logger.info("Pulling scoped subdirs: %s", subdirs)
+        else:
+            parquet_patterns = ["**/*.parquet"]
+
+        allow_patterns = parquet_patterns + [
             "metadata/**",
             "README.md",
             "sync_status.json",
@@ -164,8 +177,9 @@ class HuggingFaceSync:
             commit_message=commit_message,
             ignore_patterns=[
                 "logs/**",
-                "*.duckdb",
-                "*.duckdb.wal",
+                "**/*.duckdb",
+                "**/*.duckdb.wal",
+                "metadata/validation_report.parquet",
                 ".huggingface/**",
             ],
         )

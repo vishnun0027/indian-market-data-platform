@@ -1,0 +1,33 @@
+[Unit]
+Description=Indian Market Data Platform — Sync Pipeline
+Documentation=https://huggingface.co/datasets/vishnun0027/indian-market-historical-ohlcv
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+
+# Set User/Group to the VM user running the project (install.sh fills this in)
+User=REPLACE_USER
+WorkingDirectory=REPLACE_PROJECT_DIR
+
+# Load HF_TOKEN, HF_REPO_ID and other config from .env
+EnvironmentFile=REPLACE_PROJECT_DIR/.env
+
+# The sync command — syncs all asset types
+ExecStart=REPLACE_UV_BIN run market-data sync
+
+# If it crashes, retry after 5 minutes (avoids hammering yfinance on transient errors)
+Restart=on-failure
+RestartSec=300
+
+# Kill if it runs longer than 4 hours (full sync of 2400+ stocks takes ~2h)
+TimeoutStartSec=14400
+
+# Logs go to journald — view with:  journalctl -u market-data-sync -f
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=market-data-sync
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=Indian Market Data Platform — Daily Sync Timer
+Requires=market-data-sync.service
+
+[Timer]
+# Run every day at 06:00 UTC (Indian market opens ~03:45 UTC)
+# Change the time to suit your needs, e.g. OnCalendar=*-*-* 18:30:00 for 6:30 PM UTC
+OnCalendar=*-*-* 06:00:00
+Unit=market-data-sync.service
+
+# If the system was off when the timer was due, run it immediately on next boot
+Persistent=true
+
+# Spread the startup randomly by up to 5 minutes to avoid thundering herd
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
